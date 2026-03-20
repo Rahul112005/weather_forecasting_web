@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STRATUS — Weather Observatory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Animated starfield background -->
+  <canvas id="starfield"></canvas>
+
+  <!-- Drifting cloud silhouettes -->
+  <div class="cloud-layer">
+    <svg class="cloud-svg" viewBox="0 0 420 120">
+      <path d="M30,90 Q60,40 120,60 Q140,20 200,40 Q240,10 280,50 Q330,30 370,70 Q400,60 420,80 L420,120 L0,120 Z"/>
+    </svg>
+    <svg class="cloud-svg" viewBox="0 0 280 90">
+      <path d="M10,70 Q40,30 90,50 Q110,10 160,35 Q200,15 240,50 Q270,42 280,60 L280,90 L0,90 Z"/>
+    </svg>
+    <svg class="cloud-svg" viewBox="0 0 560 140">
+      <path d="M0,110 Q80,50 160,80 Q200,30 270,60 Q320,20 390,55 Q440,35 500,70 Q540,60 560,90 L560,140 L0,140 Z"/>
+    </svg>
+  </div>
+
+  <div class="wrapper">
+
+    <!-- ── HEADER ── -->
+    <header>
+      <div class="logo">STRA<span>T</span>US</div>
+      <div class="header-meta">
+        <div><span class="live-dot"></span>LIVE FEED — UTC+0</div>
+        <div id="clock">—</div>
+        <div>WEATHER OBSERVATORY v2.4</div>
+      </div>
+    </header>
+
+    <!-- ── SEARCH ── -->
+    <div class="search-wrap">
+      <input type="text" id="cityInput" placeholder="Search city — e.g. Faridabad …" />
+      <div class="search-icon" onclick="changeCity()">⌕</div>
+    </div>
+
+    <!-- ── INDIA CITY TABS ── -->
+    <div class="tab-group-label">🇮🇳 INDIA</div>
+    <div class="city-tabs" id="indiaTabs">
+      <button class="city-tab india-tab active" onclick="selectCity(this,'Mumbai')">Mumbai</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Delhi')">Delhi</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Bengaluru')">Bengaluru</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Chennai')">Chennai</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Kolkata')">Kolkata</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Hyderabad')">Hyderabad</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Jaipur')">Jaipur</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Ahmedabad')">Ahmedabad</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Pune')">Pune</button>
+      <button class="city-tab india-tab" onclick="selectCity(this,'Varanasi')">Varanasi</button>
+    </div>
+
+    <!-- ── GLOBAL CITY TABS ── -->
+    <div class="tab-group-label">🌍 GLOBAL</div>
+    <div class="city-tabs" id="globalTabs">
+      <button class="city-tab" onclick="selectCity(this,'New York')">New York</button>
+      <button class="city-tab" onclick="selectCity(this,'London')">London</button>
+      <button class="city-tab" onclick="selectCity(this,'Tokyo')">Tokyo</button>
+      <button class="city-tab" onclick="selectCity(this,'Dubai')">Dubai</button>
+      <button class="city-tab" onclick="selectCity(this,'Sydney')">Sydney</button>
+      <button class="city-tab" onclick="selectCity(this,'Reykjavik')">Reykjavik</button>
+    </div>
+
+    <!-- ── HERO: CURRENT + GAUGES ── -->
+    <div class="hero">
+
+      <!-- Current Conditions -->
+      <div class="card">
+        <div class="city-label">CURRENT CONDITIONS</div>
+        <div class="city-name" id="cityName">MUMBAI</div>
+        <div class="city-coords" id="cityCoords">19.08°N / 72.88°E · ELEVATION 14m</div>
+        <div class="temp-row">
+          <div class="temp-big" id="tempBig">33</div>
+          <div class="temp-unit">°C</div>
+          <div class="temp-meta">
+            FEELS LIKE <strong id="feelsLike">40°</strong><br>
+            HIGH <strong id="hiTemp">36°</strong> / LOW <strong id="loTemp">27°</strong><br>
+            HUMIDITY <strong id="humidity">82%</strong>
+          </div>
+        </div>
+        <div class="condition-badge" id="condBadge">
+          <svg class="wx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2"  x2="12" y2="4"/>
+            <line x1="12" y1="20" x2="12" y2="22"/>
+            <line x1="4.22" y1="4.22"   x2="5.64"  y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="2"  y1="12" x2="4"  y2="12"/>
+            <line x1="20" y1="12" x2="22" y2="12"/>
+          </svg>
+          HUMID &amp; HAZY
+        </div>
+      </div>
+
+      <!-- Instrument Gauges -->
+      <div class="card">
+        <div class="card-title">INSTRUMENT PANEL</div>
+        <div class="gauges-grid">
+          <div class="gauge-wrap">
+            <canvas class="gauge" id="g-wind"     width="100" height="100"></canvas>
+            <div class="gauge-label">WIND</div>
+            <div class="gauge-value" id="windVal">16 <span class="gauge-unit">km/h</span></div>
+          </div>
+          <div class="gauge-wrap">
+            <canvas class="gauge" id="g-pressure" width="100" height="100"></canvas>
+            <div class="gauge-label">PRESSURE</div>
+            <div class="gauge-value" id="pressVal">1008 <span class="gauge-unit">hPa</span></div>
+          </div>
+          <div class="gauge-wrap">
+            <canvas class="gauge" id="g-uv"       width="100" height="100"></canvas>
+            <div class="gauge-label">UV INDEX</div>
+            <div class="gauge-value" id="uvVal">9 <span class="gauge-unit">idx</span></div>
+          </div>
+          <div class="gauge-wrap">
+            <canvas class="gauge" id="g-vis"      width="100" height="100"></canvas>
+            <div class="gauge-label">VISIBILITY</div>
+            <div class="gauge-value" id="visVal">8 <span class="gauge-unit">km</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.hero -->
+
+    <!-- ── 24-HOUR STRIP ── -->
+    <div class="hourly-section">
+      <div class="section-title">24-HOUR PROFILE</div>
+      <div class="hourly-scroll" id="hourlyStrip"></div>
+    </div>
+
+    <!-- ── 7-DAY OUTLOOK ── -->
+    <div class="weekly-section">
+      <div class="section-title">7-DAY OUTLOOK</div>
+      <table class="week-table" id="weekTable"></table>
+    </div>
+
+    <!-- ── ATMOSPHERIC STATS ── -->
+    <div class="stats-grid-wrap">
+      <div class="section-title">ATMOSPHERIC DATA</div>
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-label">DEW POINT</div>
+          <div class="stat-value" id="statDew">28<span class="stat-suffix">°C</span></div>
+          <div class="stat-sub">High moisture in air</div>
+          <div class="stat-corner">💧</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">WIND DIRECTION</div>
+          <div class="stat-value" id="statWind">SW</div>
+          <div class="stat-sub" id="statWindSub">Gusts up to 26 km/h</div>
+          <div class="stat-corner">🧭</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">PRECIPITATION</div>
+          <div class="stat-value" id="statRain">6.5<span class="stat-suffix">mm</span></div>
+          <div class="stat-sub">Expected next 24h</div>
+          <div class="stat-corner">🌧</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">AIR QUALITY</div>
+          <div class="stat-value" id="statAQ">88<span class="stat-suffix"> AQI</span></div>
+          <div class="stat-sub" id="statAQsub">Moderate — Acceptable</div>
+          <div class="stat-corner">🍃</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── SOLAR ARC ── -->
+    <div class="sun-section">
+      <div class="section-title">SOLAR ARC</div>
+      <div class="sun-bar-wrap">
+        <div class="sun-times">
+          <div>SUNRISE <span id="sunriseTime">06:08</span></div>
+          <div>NOW <span id="sunNow">—</span></div>
+          <div>SUNSET <span id="sunsetTime">19:02</span></div>
+        </div>
+        <div class="sun-track">
+          <div class="sun-progress" id="sunProgress" style="width: 0%">
+            <div class="sun-orb"></div>
+          </div>
+        </div>
+        <div class="sun-labels">
+          <span>DAWN</span>
+          <span>MORNING</span>
+          <span>NOON</span>
+          <span>AFTERNOON</span>
+          <span>DUSK</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <footer>
+      <div>STRATUS WEATHER OBSERVATORY © 2026</div>
+      <div>DATA SIMULATED · REFRESH EVERY 300s</div>
+      <div>DEVELOPED BY : RAHUL </div>
+    </footer>
+
+  </div><!-- /.wrapper -->
+
+  <script src="script.js"></script>
+
+  
+</body>
+</html>
